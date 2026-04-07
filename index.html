@@ -153,11 +153,11 @@ label.lbl{font-size:12px;font-weight:700;color:var(--mu);display:block;margin-bo
   </div>
   <div class="pbody">
     <div class="card">
-      <h3>🔑 Chave API Grok (xAI)</h3>
-      <p>Necessária para o assistente entender mensagens. Obtenha em console.x.ai</p>
-      <input type="password" id="apiinput" placeholder="xai-..." autocomplete="off">
+      <h3>🔑 Chave API Groq</h3>
+      <p>Necessária para o assistente entender mensagens. Gratuita em console.groq.com</p>
+      <input type="password" id="apiinput" placeholder="gsk_..." autocomplete="off">
       <br><br>
-      <a href="https://console.x.ai" target="_blank" style="color:var(--gn);font-size:12px;font-weight:700;">→ Abrir console.x.ai</a>
+      <a href="https://console.groq.com/keys" target="_blank" style="color:var(--gn);font-size:12px;font-weight:700;">→ Abrir console.groq.com/keys</a>
     </div>
 
     <div class="card">
@@ -359,7 +359,7 @@ function saveSetup(){
 
 function updateBadge(){
   const b=document.getElementById('abadge');
-  if(apiKey&&apiKey.startsWith('xai-')){b.textContent='Grok ativo';b.className='badge ok';}
+  if(apiKey&&apiKey.startsWith('gsk_')){b.textContent='Groq ativo';b.className='badge ok';}
   else{b.textContent='Sem API';b.className='badge';}
 }
 
@@ -507,19 +507,19 @@ NORMALIZAÇÃO: "cinquenta"→50 | "três mil"→3000 | "hoje"→${today()} | no
 REGRAS: nunca invente valores; pergunte UMA coisa por vez se faltar info; sempre responda em português.`;
 }
 
-async function callGrok(msg){
-  if(!apiKey||!apiKey.startsWith('xai-'))
-    return{resposta:'⚠️ Chave Grok não configurada. Toque ⚙️ e adicione sua chave de console.x.ai',acao:'nenhuma',transacao:null};
+async function callGroq(msg){
+  if(!apiKey||!apiKey.startsWith('gsk_'))
+    return{resposta:'⚠️ Chave Groq não configurada. Toque ⚙️ e adicione sua chave de console.groq.com/keys',acao:'nenhuma',transacao:null};
 
   chatHist.push({role:'user',content:msg});
   if(chatHist.length>12)chatHist=chatHist.slice(-12);
 
-  const res=await fetch('https://api.x.ai/v1/chat/completions',{
+  const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`},
-    body:JSON.stringify({model:'grok-3-mini',messages:[{role:'system',content:buildSP()},...chatHist],max_tokens:600,temperature:0.1})
+    body:JSON.stringify({model:'llama-3.3-70b-versatile',messages:[{role:'system',content:buildSP()},...chatHist],max_tokens:600,temperature:0.1})
   });
-  if(!res.ok){const e=await res.text();throw new Error(`Grok ${res.status}: ${e.slice(0,120)}`);}
+  if(!res.ok){const e=await res.text();throw new Error(`Groq ${res.status}: ${e.slice(0,120)}`);}
   const data=await res.json();
   const raw=data.choices?.[0]?.message?.content||'';
   chatHist.push({role:'assistant',content:raw});
@@ -547,7 +547,7 @@ function hideTyp(){document.getElementById('typ')?.remove();}
 
 function updateSt(){
   const c=q('SELECT COUNT(*) as n FROM tx')[0]?.n||0;
-  document.getElementById('hst').textContent=`${c} transação${c!==1?'ões':''} • Grok xAI`;
+  document.getElementById('hst').textContent=`${c} transação${c!==1?'ões':''} • Groq AI`;
 }
 
 function renderQbar(){
@@ -566,7 +566,7 @@ async function proc(text){
   isLoading=true;document.getElementById('sbtn').disabled=true;
   addBbl('user',text);showTyp();
   try{
-    const p=await callGrok(text);
+    const p=await callGroq(text);
     hideTyp();
     if(p.acao==='registrar'&&p.transacao){
       ins({...p.transacao,data:p.transacao.data||today()});
@@ -586,7 +586,7 @@ async function init(){
   updateBadge();updateSt();renderQbar();renderCClist();
   if(apiKey)document.getElementById('apiinput').value=apiKey;
   if(!apiKey)openP('psetup');
-  addBbl('bot',`Olá! 👋 Sou o *FinBot* — agora com Grok xAI.\n\nRegistre gastos e receitas:\n• "Paguei 45 no mercado"\n• "Recebi salário 3.200"\n• "Quanto gastei essa semana?"\n\n📊 Dashboard com filtros por período e categoria\n⚙️ Crie categorias personalizadas\n\nDados salvos localmente em SQLite. 🔒`);
+  addBbl('bot',`Olá! 👋 Sou o *FinBot* — agora com Groq AI.\n\nRegistre gastos e receitas:\n• "Paguei 45 no mercado"\n• "Recebi salário 3.200"\n• "Quanto gastei essa semana?"\n\n📊 Dashboard com filtros por período e categoria\n⚙️ Crie categorias personalizadas\n\nDados salvos localmente em SQLite. 🔒`);
 }
 init().catch(console.error);
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
